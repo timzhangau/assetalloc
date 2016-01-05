@@ -34,6 +34,10 @@ class Forecasting(object):
             
         self.cov = portfolio.corr * np.outer(self.stdev, self.stdev)
         
+        
+        
+        
+        
      def return_range
         
         
