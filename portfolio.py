@@ -11,21 +11,30 @@ import numpy as np
 # forecasting function
 
 class Portfolio(object):
-    def __init__(self, weight, assets, corr):
-        self.weight = weight
+    def __init__(self, weights, assets, corr):
+        self.weights = weights # weights is a numpy array
         self.assets = assets
         self.corr = corr
         self.mean = np.array([])
         self.stdev = np.array([])
         self.skew = np.array([])
-        self.kurt = np.array([])# Correlation is a matrix variable her
+        self.kurt = np.array([]) # Correlation is a numpy array
         for asset in self.assets:
             self.mean = np.append(self.mean, asset.mean)
             self.stdev = np.append(self.stdev, asset.stdev)
             self.skew = np.append(self.skew, asset.skew)
             self.kurt = np.append(self.kurt, asset.kurt)
+        
+    def calculate_portfolio_stats(self):
+        if np.sum(self.weights) == 1:
+            self.mean = np.dot(self.weights, self.mean)
+            self.stdev = np.dot(np.dot(self.weights, self.cov), self.weights)
+        else:
+            print 'Check Portfolio Weights, sum not equal to 100%'
             
-        self.cov = self.corr * np.outer(self.stdev, self.stdev)      
+            
+        
+    
 
         
         
