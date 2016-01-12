@@ -15,7 +15,7 @@ class Portfolio(object):
         self.weights = weights # weights is a numpy array
         self.assets = assets
         self.corr = corr
-        self.mean = np.array([])
+        self.AR = np.array([])
         self.stdev = np.array([])
         self.skew = np.array([])
         self.kurt = np.array([]) # Correlation is a numpy array
@@ -27,8 +27,11 @@ class Portfolio(object):
         
     def calculate_portfolio_stats(self):
         if np.sum(self.weights) == 1:
-            self.mean = np.dot(self.weights, self.mean)
+            self.AR = np.dot(self.weights, self.mean)
+            self.cov = self.corr * np.outer(self.stdev, self.stdev)
             self.stdev = np.dot(np.dot(self.weights, self.cov), self.weights)
+            self.GR = (1 + self.AR) * 
+            exp(-0.5 * (self.stdev**2) * ((1+self.AR)**-2)) -1
         else:
             print 'Check Portfolio Weights, sum not equal to 100%'
             
