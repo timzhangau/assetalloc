@@ -15,7 +15,7 @@ class Portfolio(object):
         self.weights = weights # weights is a numpy array
         self.assets = assets
         self.corr = corr
-        self.AR = np.array([])
+        self.mean = np.array([])
         self.stdev = np.array([])
         self.skew = np.array([])
         self.kurt = np.array([]) # Correlation is a numpy array
