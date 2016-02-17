@@ -6,7 +6,7 @@ Created on Mon Feb 15 16:28:23 2016
 """
 
 import pandas as pd
-
+from datetime import datetime
 
 
 # This is to create a Currency class to store currency pair attributes
@@ -16,10 +16,10 @@ class Currency(object):
     def __init__(self, base_currency):
         # initiate currency class, all we need is base currency for start
         self.base_currency = base_currency
-        self.cpi = 'cpi series'
-        self.ppi = 'ppi series'
-        self.ppp = 'ppp series'
-        self.ner = 'ner series'
+        self.cpi = 'please load cpi series'
+        self.ppi = 'please load ppi series'
+        self.ppp = 'please load ppp series'
+        self.ner = 'please load ner series'
     
     # Functions need to be created
     # 1. import data (this will import deflator series and methodology lookup)
@@ -30,22 +30,39 @@ class Currency(object):
         # import cpi history
         cpi_history = files_path + '/cpi_history.csv'
         cpi = pd.read_csv(cpi_history, parse_dates=True, index_col=[0])
-        self.cpi = cpi[self.base_currency]
+        cpi = cpi[['USD', self.base_currency]]
         
         # import ppi history
         ppi_history = files_path + '/ppi_history.csv'
         ppi = pd.read_csv(ppi_history, parse_dates=True, index_col=[0])  
-        self.ppi = ppi[self.base_currency]
+        ppi = ppi[['USD', self.base_currency]]
         
         # import ppp history
         ppp_history = files_path + '/ppp_history.csv'
         ppp = pd.read_csv(ppp_history, parse_dates=True, index_col=[0])
-        self.ppp = ppp[self.base_currency]
+        ppp = ppp[['USD', self.base_currency]]
         
         # import NER history
         ner_history = files_path + '/ppp_history.csv'
         ner = pd.read_csv(ner_history, parse_dates=True, index_col=[0])
-        self.ner = ner['USD' + self.base_currency]
+        ner = ner['USD' + self.base_currency]
+        
+        return cpi, ppi, ppp, ner        
+        
+    def cal_fair_ner(self, methodology, cpi, ppi, ppp, ner):
+        # import fair ner calculation methodology
+        methodology = pd.read_csv(methodology, parse_dates=[-1], index_col=[0])
+        method = methodology.ix[self.base_currency]['Deflator']
+        start_date = methodology.loc[self.base_currency, 'Start_Date']
+        
+        cpi_idx = cpi/cpi.loc[start_date]
+        ppi_idx = ppi/ppi.loc[start_date]
+        ppp_idx = ppp/ppp.loc[start_date]
+        
+        
+        
+        
+        
         
         
     
