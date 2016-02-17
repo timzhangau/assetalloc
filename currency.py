@@ -45,7 +45,7 @@ class Currency(object):
         # import NER history
         ner_history = files_path + '/ppp_history.csv'
         ner = pd.read_csv(ner_history, parse_dates=True, index_col=[0])
-        ner = ner['USD' + self.base_currency]
+        ner = ner[self.base_currency]
         
         return cpi, ppi, ppp, ner        
         
@@ -55,9 +55,22 @@ class Currency(object):
         method = methodology.ix[self.base_currency]['Deflator']
         start_date = methodology.loc[self.base_currency, 'Start_Date']
         
-        cpi_idx = cpi/cpi.loc[start_date]
-        ppi_idx = ppi/ppi.loc[start_date]
-        ppp_idx = ppp/ppp.loc[start_date]
+        # index USD price series
+        cpi['USD'] = cpi['USD']/cpi['USD'][0]       
+        ppi['USD'] = ppi['USD']/ppi['USD'][0] 
+        ppp['USD'] = ppp['USD']/ppp['USD'][0] 
+        
+        # index base currency's country price levels
+        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[start_date, self.base_currency]
+        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[start_date, self.base_currency]
+        ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[start_date, self.base_currency]
+        
+        # calculate price level differentials from U.S.
+        cpi_diff = cpi[self.base_currency]/cpi['USD'].values
+
+        
+        
+        
         
         
         
