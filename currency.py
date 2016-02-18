@@ -6,6 +6,7 @@ Created on Mon Feb 15 16:28:23 2016
 """
 
 import pandas as pd
+import numpy as np
 from datetime import datetime
 
 
@@ -42,7 +43,7 @@ class Currency(object):
         ppp = pd.read_csv(ppp_history, parse_dates=True, index_col=[0])
         ppp = ppp[['USD', self.base_currency]]
         
-        # import NER history
+        # import NER history. NER is expressed in "USDXXX" format
         ner_history = files_path + '/ppp_history.csv'
         ner = pd.read_csv(ner_history, parse_dates=True, index_col=[0])
         ner = ner[self.base_currency]
@@ -54,6 +55,8 @@ class Currency(object):
         methodology = pd.read_csv(methodology, parse_dates=[-1], index_col=[0])
         method = methodology.ix[self.base_currency]['Deflator']
         start_date = methodology.loc[self.base_currency, 'Start_Date']
+
+        ner = 1/ner[self.base_currency]        
         
         # index USD price series
         cpi['USD'] = cpi['USD']/cpi['USD'][0]       
@@ -66,7 +69,58 @@ class Currency(object):
         ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[start_date, self.base_currency]
         
         # calculate price level differentials from U.S.
-        cpi_diff = cpi[self.base_currency]/cpi['USD'].values
+        cpi_diff = cpi[self.base_currency]/cpi['USD']
+        cpi_diff.columns = self.base_currency
+        
+        ppi_diff = ppi[self.base_currency]/ppi['USD']
+        ppi_diff.columns = self.base_currency
+        
+        ppp_diff = ppp[self.base_currency]/ppp['USD']
+        ppp_diff.columns = self.base_currency
+        
+        # calculate real exchange rate using RER=NERxP/P*, where P* is foreign price level (U.S. in this case)
+        # RER is expressed here in "XXXUSD" format        
+        rer_cpi = ner * cpi_diff
+        rer_ppi = ner * ppi_diff
+        rer_ppp = ner * ppp_diff
+        rer_avg2 = (rer_cpi + rer_ppi) / 2
+        
+        # calculate historical averages using pandas expanding_mean function       
+        rer_cpi_mean = np.exp(pd.expanding_mean(np.log(rer_cpi)))
+        rer_ppi_mean = np.exp(pd.expanding_mean(np.log(rer_ppi)))
+        rer_ppp_mean = np.exp(pd.expanding_mean(np.log(rer_ppp)))
+        rer_avg2_mean = np.exp(pd.expanding_mean(np.log(rer_avg2)))
+        
+        #calculate Fair RER assuming "Current RER/Current NER = Fair RER/Fair NER"
+        ner_cpi_fair = rer_cpi_mean/(rer_cpi/ner)
+        ner_ppi_fair = rer_ppi_mean/(rer_ppi/ner)
+        ner_ppp_fair = rer_ppp_mean/(rer_ppp/ner)
+        ner_avg2_fair = rer_avg2_mean/(rer_avg2/ner)
+        
+        # calculate current valuation deviation from fair NER
+        val_diff_cpi = ner/ner_cpi_fair - 1
+        val_diff_ppi = ner/ner_ppi_fair - 1
+        val_diff_ppp = ner/ner_ppp_fair - 1
+        val_diff_avg2 = ner/ner_avg2_fair - 1
+        
+        # calculate fair NER based on calculation methodology
+        if method = 'PPP/CPI':
+            ner_fair = 1
+        elif method = 'PPP/CPI/PPI':
+            ner_fair = 2
+        elif method = 'PPP':
+            ner_fair = 3
+        elif method = 'CPI/PPI':
+            ner_fair = 4
+        elif method = 'PPI':
+            ner_fair = 5
+            
+        return ner_fair[-1]
+        
+                
+        
+        
+        
 
         
         
