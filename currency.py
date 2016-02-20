@@ -7,7 +7,6 @@ Created on Mon Feb 15 16:28:23 2016
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 
 # This is to create a Currency class to store currency pair attributes
@@ -29,44 +28,60 @@ class Currency(object):
     
     def import_data(self, files_path):
         # import cpi history
-        cpi_history = files_path + '/cpi_history.csv'
+        cpi_history = files_path + 'cpi_history.csv'
         cpi = pd.read_csv(cpi_history, parse_dates=True, index_col=[0])
-        cpi = cpi[['USD', self.base_currency]]
+        self.cpi = cpi[['USD', self.base_currency]]
         
         # import ppi history
-        ppi_history = files_path + '/ppi_history.csv'
+        ppi_history = files_path + 'ppi_history.csv'
         ppi = pd.read_csv(ppi_history, parse_dates=True, index_col=[0])  
-        ppi = ppi[['USD', self.base_currency]]
+        self.ppi = ppi[['USD', self.base_currency]]
         
         # import ppp history
-        ppp_history = files_path + '/ppp_history.csv'
+        ppp_history = files_path + 'ppp_history.csv'
         ppp = pd.read_csv(ppp_history, parse_dates=True, index_col=[0])
-        ppp = ppp[['USD', self.base_currency]]
+        self.ppp = ppp[['USD', self.base_currency]]
         
         # import NER history. NER is expressed in "USDXXX" format
-        ner_history = files_path + '/ppp_history.csv'
+        ner_history = files_path + 'ner_history.csv'
         ner = pd.read_csv(ner_history, parse_dates=True, index_col=[0])
-        ner = ner[self.base_currency]
+        self.ner = 1 / ner[self.base_currency]
         
-        return cpi, ppi, ppp, ner        
-        
-    def cal_fair_ner(self, methodology, cpi, ppi, ppp, ner):
-        # import fair ner calculation methodology
+        # import calculation methodology
+        methodology = files_path + 'methodology.csv'
         methodology = pd.read_csv(methodology, parse_dates=[-1], index_col=[0])
-        method = methodology.ix[self.base_currency]['Deflator']
-        start_date = methodology.loc[self.base_currency, 'Start_Date']
-
-        ner = 1/ner[self.base_currency]        
+        self.methodology = methodology.ix[self.base_currency]['Deflator']
         
+        # import currency starting date
+        self.start_date = methodology.loc[self.base_currency, 'Start_Date']      
+        
+        return 'Data Imported'      
+        
+    def cal_fair_ner(self):
+        
+       # Extract history series for later calculation
+        cpi = self.cpi
+        ppi = self.ppi
+        ppp = self.ppp
+        ner = self.ner
+        
+        # retain base currency's CPI, PPI, PPP and NER attributes
+        self.cpi = self.cpi[self.base_currency]
+        self.ppi = self.ppi[self.base_currency]
+        self.ppp = self.ppp[self.base_currency]
+
         # index USD price series
         cpi['USD'] = cpi['USD']/cpi['USD'][0]       
         ppi['USD'] = ppi['USD']/ppi['USD'][0] 
-        ppp['USD'] = ppp['USD']/ppp['USD'][0] 
+        
+        # PPP does not need to be indexed to the starting date
+        # ppp['USD'] = ppp['USD']/ppp['USD'][0] 
         
         # index base currency's country price levels
-        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[start_date, self.base_currency]
-        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[start_date, self.base_currency]
-        ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[start_date, self.base_currency]
+        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[self.start_date, self.base_currency]
+        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[self.start_date, self.base_currency]
+        # PPP doesn't need to be indexed to the starting date
+        # ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[start_date, self.base_currency]
         
         # calculate price level differentials from U.S.
         cpi_diff = cpi[self.base_currency]/cpi['USD']
@@ -104,20 +119,23 @@ class Currency(object):
         val_diff_avg2 = ner/ner_avg2_fair - 1
         
         # calculate fair NER based on calculation methodology
-        if method = 'PPP/CPI':
-            ner_fair = 1
-        elif method = 'PPP/CPI/PPI':
-            ner_fair = 2
-        elif method = 'PPP':
-            ner_fair = 3
-        elif method = 'CPI/PPI':
-            ner_fair = 4
-        elif method = 'PPI':
-            ner_fair = 5
-            
-        return ner_fair[-1]
+        if self.methodology == 'PPP/CPI':
+            val_diff = (val_diff_ppp + val_diff_cpi) / 2
+        elif self.methodology == 'PPP/CPI/PPI':
+            val_diff = (val_diff_ppp + val_diff_avg2) / 2
+        elif self.methodology == 'PPP':
+            val_diff = val_diff_ppp
+        elif self.methodology == 'CPI/PPI':
+            val_diff = val_diff_avg2
+        elif self.methodology == 'PPI':
+            val_diff = val_diff_ppi
+        
+        self.ner_fair = ner/(1 + val_diff)
+        
+        return 'Fair NER Calculated'
         
                 
+        
         
         
         
