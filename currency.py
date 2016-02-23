@@ -78,8 +78,8 @@ class Currency(object):
         # ppp['USD'] = ppp['USD']/ppp['USD'][0] 
         
         # index base currency's country price levels
-        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[self.start_date, self.base_currency]
-        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[self.start_date, self.base_currency]
+        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[cpi[self.base_currency].first_valid_index(), self.base_currency]
+        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[ppi[self.base_currency].first_valid_index(), self.base_currency]
         # PPP doesn't need to be indexed to the starting date
         # ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[start_date, self.base_currency]
         
