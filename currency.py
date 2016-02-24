@@ -60,10 +60,10 @@ class Currency(object):
     def cal_fair_ner(self):
         
        # Extract history series for later calculation
-        cpi = self.cpi
-        ppi = self.ppi
-        ppp = self.ppp
-        ner = self.ner
+        cpi = self.cpi * 1
+        ppi = self.ppi * 1
+        ppp = self.ppp * 1
+        ner = self.ner * 1
         
         # retain base currency's CPI, PPI, PPP and NER attributes
         self.cpi = self.cpi[self.base_currency]
@@ -74,24 +74,24 @@ class Currency(object):
         cpi['USD'] = cpi['USD']/cpi['USD'][0]       
         ppi['USD'] = ppi['USD']/ppi['USD'][0] 
         
-        # PPP does not need to be indexed to the starting date
+        # PPP[USD] does not need to be indexed to the starting date
         # ppp['USD'] = ppp['USD']/ppp['USD'][0] 
         
         # index base currency's country price levels
-        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[cpi[self.base_currency].first_valid_index(), self.base_currency]
-        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[ppi[self.base_currency].first_valid_index(), self.base_currency]
-        # PPP doesn't need to be indexed to the starting date
-        # ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[start_date, self.base_currency]
+        cpi[self.base_currency] = cpi[self.base_currency]/cpi.loc[self.start_date, self.base_currency]
+        ppi[self.base_currency] = ppi[self.base_currency]/ppi.loc[self.start_date, self.base_currency]
+        ppp[self.base_currency] = ppp[self.base_currency]/ppp.loc[self.start_date, self.base_currency]
         
         # calculate price level differentials from U.S.
         cpi_diff = cpi[self.base_currency]/cpi['USD']
-        cpi_diff.columns = self.base_currency
+        #cpi_diff.columns = self.base_currency
         
         ppi_diff = ppi[self.base_currency]/ppi['USD']
-        ppi_diff.columns = self.base_currency
+        #ppi_diff.columns = self.base_currency
         
-        ppp_diff = ppp[self.base_currency]/ppp['USD']
-        ppp_diff.columns = self.base_currency
+        # No need to index PPP to US as all US PPP series is equal to 1
+        ppp_diff = ppp[self.base_currency]
+        #ppp_diff.columns = self.base_currency
         
         # calculate real exchange rate using RER=NERxP/P*, where P* is foreign price level (U.S. in this case)
         # RER is expressed here in "XXXUSD" format        
