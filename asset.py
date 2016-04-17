@@ -37,7 +37,10 @@ Methods need to be built for Asset object:
     matrix is a method under portfolio objects
     - Conversion between arithmetic mean and geometric mean
 """
+    def artogr(self):
+        self.g_rtn = (1 + self.a_rtn) * exp(-0.5 * (self.stdev**2) * ((1+self.a_rtn)**-2)) -1
 
+            
         
         
         
