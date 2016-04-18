@@ -6,7 +6,6 @@ Created on Tue Jan 05 11:53:40 2016
 """
 
 import numpy as np
-from cvxopt import matrix, solvers
 
 # This is create a portfolio class to feed in
 # forecasting function
@@ -83,11 +82,11 @@ Optimization Objective:
         * First lower partial moment below a target return
 
 """
-    def mvopt(Portfolio):
-        a_rtn_ls = Portfolio.a_rtn_ls
-        stdev_ls = Portfolio.stdev_ls
-        corr = Portfolio.corr
-        cov = corr * np.outer(stdev_ls, stdev_ls)
+    def mvopt(a_rtn_ls, cov, rtn_target, lower_bound=None, upper_bound=None):
+        try:
+            pass
+            from cvxopt import matrix
+            from cvxopt.solvers import qp, options
 # cvxopt Quandratic Programming        
 # solves the QP, where x is the allocation of the portfolio:
 # minimize   x'Px + q'x
@@ -101,8 +100,38 @@ Optimization Objective:
 #                   like to achieve
 # Output: sol - cvxopt solution object        
 
-
-
+        n = len(a_rtn_ls)
+        
+        # Upper bound of the Weights of a equity, If not specified, assumed to be 1.
+        if (upper_bound is None):
+            upper_bound = np.ones(n)
+        upper_bound.shape = (n,1)
+    
+        # Lower bound of the Weights of a equity, If not specified assumed to be 0 (No shorting case)
+        if (lower_bound is None):
+            lower_bound = np.zeros(n) 
+        lower_bound.shape = (n,1)
+                        
+        P = matrix(cov.values)
+        q = matrix(0.0, (n,1))
+        
+        # Constraints Gx <=h, set lower and upper bounds
+        zeros = matrix(0.0, (n,1))
+        I = np.eye(n)
+        minusI = -1 * I
+        G = matrix(np.vstack((I, minusI)))
+        h = matrix(np.vstack((upper_bound, lower_bound)))
+        
+        # Constraints Ax = b
+        # sum(x) = 1
+        ones = matrix(1.0, (1,n))
+        A = matrix(np.vstack((matrix(a_rtn_ls, (1,n)), ones)))
+        b = matrix([float(rtn_target), 1.0])
+        
+        # Optional Settings for CVXOPT
+        options['show_progress'] = False
+        
+        op_w = qp(P, q, G, h, A, b)['x']
         
         
 
