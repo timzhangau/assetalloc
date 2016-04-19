@@ -6,6 +6,7 @@ Created on Tue Jan 05 11:53:40 2016
 """
 
 import numpy as np
+import pandas as pd
 
 # This is create a portfolio class to feed in
 # forecasting function
@@ -25,7 +26,8 @@ class Portfolio(object):
             self.g_rtn_ls = np.append(self.g_rtn, asset.g_rtn)
             self.stdev_ls = np.append(self.stdev, asset.stdev)
             self.skew_ls = np.append(self.skew, asset.skew)
-            self.kurt_ls = np.append(self.kurt, asset.kurt)
+            self.kurt_ls = np.append(self.kurt, asset.kurt)        
+        return
 
 """
 Methods need to be built for Portfolio object:
@@ -33,9 +35,7 @@ Methods need to be built for Portfolio object:
     - Portfolio Optimization
     - Portfolio Forecasting
 """
-    
-
-    
+"""
     def calculate_portfolio_stats(self):
         if np.sum(self.weights) == 1:
             self.a_rtn = np.dot(self.weights, self.a_rtn_ls)    # AR: Arithmetic Return
@@ -46,7 +46,7 @@ Methods need to be built for Portfolio object:
             exp(-0.5 * (self.stdev**2) * ((1+self.a_rtn)**-2)) -1
         else:
             print 'Check Portfolio Weights, sum not equal to 100%'
-            
+"""            
             
         
 """
@@ -82,6 +82,7 @@ Optimization Objective:
         * First lower partial moment below a target return
 
 """
+
     def mvopt(a_rtn_ls, cov, rtn_target, lower_bound=None, upper_bound=None):
         try:
             pass
@@ -130,8 +131,14 @@ Optimization Objective:
         
         # Optional Settings for CVXOPT
         options['show_progress'] = False
+        sol = qp(P, q, G, h, A, b)
         
-        op_w = qp(P, q, G, h, A, b)['x']
+        if sol['status'] != 'optimal':
+            warnings.warn("Convergence Problem")
+        
+        op_w = pd.Series(sol['x'], index=cov.index)
+        
+        return op_w
         
         
 
