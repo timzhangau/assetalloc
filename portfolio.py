@@ -7,6 +7,7 @@ Created on Tue Jan 05 11:53:40 2016
 
 import numpy as np
 import pandas as pd
+from assetalloc.asset import Asset
 from cvxopt import matrix
 from cvxopt.solvers import qp, options
 
@@ -22,11 +23,13 @@ class Portfolio(object):
         self.weights = "please load portfolio weights" # weights is a numpy array
         self.assets = "please specify assets list"
         self.corr = np.array([]) # Correlation is a numpy array
-        self.a_rtn_ls = np.array([])
-        self.g_rtn_ls = np.array([])
-        self.stdev_ls = np.array([])
-        self.skew_ls = np.array([])
-        self.kurt_ls = np.array([])
+        
+        # all the below attributes can be obtained from Asset list
+        #self.a_rtn_ls = np.array([])
+        #self.g_rtn_ls = np.array([])
+        #self.stdev_ls = np.array([])
+        #self.skew_ls = np.array([])
+        #self.kurt_ls = np.array([])
         
         #for asset in self.assets:
         #    self.a_rtn_ls = np.append(self.a_rtn_ls, asset.a_rtn)
@@ -80,7 +83,7 @@ class Portfolio(object):
 #       * First lower partial moment below a target return
 
 
-    def mvopt(self, a_rtn_ls, cov, rtn_target, lower_bound=None, upper_bound=None):
+    def mvopt(self, rtn_target, lower_bound=None, upper_bound=None):
 # cvxopt Quandratic Programming        
 # solves the QP, where x is the allocation of the portfolio:
 # minimize   x'Px + q'x
@@ -93,7 +96,11 @@ class Portfolio(object):
 #         r_min   - the minimum expected return that you'd
 #                   like to achieve
 # Output: sol - cvxopt solution object        
-
+        
+        a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
+        stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
+        name_ls = np.array([self.assets[i].name for i in range(len(self.assets))])
+        cov = self.corr.values * np.outer(stdev_ls, stdev_ls)
         n = len(a_rtn_ls)
         
         # Upper bound of the Weights of a equity, If not specified, assumed to be 1.
@@ -106,11 +113,10 @@ class Portfolio(object):
             lower_bound = np.zeros(n) 
         lower_bound.shape = (n,1)
                         
-        P = matrix(cov.values)
+        P = matrix(cov)
         q = matrix(0.0, (n,1))
         
         # Constraints Gx <=h, set lower and upper bounds
-        zeros = matrix(0.0, (n,1))
         I = np.eye(n)
         minusI = -1 * I
         G = matrix(np.vstack((I, minusI)))
@@ -129,7 +135,7 @@ class Portfolio(object):
         if sol['status'] != 'optimal':
             warnings.warn("Convergence Problem")
         
-        op_w = pd.Series(sol['x'], index=cov.index)
+        op_w = pd.Series(sol['x'], index=name_ls)
         
         return op_w
         
