@@ -84,18 +84,18 @@ class Portfolio(object):
 
 
     def mvopt(self, rtn_target, lower_bound=None, upper_bound=None):
-# cvxopt Quandratic Programming        
-# solves the QP, where x is the allocation of the portfolio:
-# minimize   x'Px + q'x
-# subject to Gx <= h
-#            Ax == b
-#
-# Input:  n       - # of assets
-#         avg_ret - nx1 matrix of average returns
-#         covs    - nxn matrix of return covariance
-#         r_min   - the minimum expected return that you'd
-#                   like to achieve
-# Output: sol - cvxopt solution object        
+        # cvxopt Quandratic Programming        
+        # solves the QP, where x is the allocation of the portfolio:
+        # minimize   x'Px + q'x
+        # subject to Gx <= h
+        #            Ax == b
+        #
+        # Input:  n       - # of assets
+        #         avg_ret - nx1 matrix of average returns
+        #         covs    - nxn matrix of return covariance
+        #         r_min   - the minimum expected return that you'd
+        #                   like to achieve
+        # Output: sol - cvxopt solution object        
         
         a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
         stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
@@ -139,6 +139,25 @@ class Portfolio(object):
         
         return op_w
         
+        
+    def efficientfrontier(self, simu=100):
+        #generate returns list to feed into mvopt
+        a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
+        stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
+        rtn_ls = [(max(a_rtn_ls)-min(a_rtn_ls))/100*i+min(a_rtn_ls) for i in range(simu+1)]
+        
+        returns = []
+        risks = []
+        
+        # call mean-variance optimizer to get optimal weights for each return in the list
+        for rtn_target in rtn_ls:
+            returns.append(rtn_target)
+            op_w = self.mvopt(rtn_target)
+            var = np.dot(np.dot(op_w.values, self.cov.values), op_w.values)
+            stdev = var ** 0.5
+            risks.append(stdev)
+            
+        return returns, risks
         
 
 
