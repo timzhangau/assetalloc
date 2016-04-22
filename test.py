@@ -10,6 +10,7 @@ import numpy as np
 from assetalloc.asset import Asset
 from assetalloc.portfolio import Portfolio
 import matplotlib.pyplot as plt
+%matplotlib inline
 
 # upload asset risk, return details and correlation matrix
 
@@ -33,7 +34,8 @@ portfolio1.cov = cov
 returns, risks = portfolio1.efficientfrontier()
 
 # plot efficient frontier
-plt.plot(risks, returns)
+portfolio1.plotfrontier()
+
 
 
 

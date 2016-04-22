@@ -10,6 +10,7 @@ import pandas as pd
 from assetalloc.asset import Asset
 from cvxopt import matrix
 from cvxopt.solvers import qp, options
+import matplotlib.pyplot as plt
 
 """
 Methods need to be built for Portfolio object:
@@ -143,7 +144,6 @@ class Portfolio(object):
     def efficientfrontier(self, simu=100):
         #generate returns list to feed into mvopt
         a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
-        stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
         rtn_ls = [(max(a_rtn_ls)-min(a_rtn_ls))/100*i+min(a_rtn_ls) for i in range(simu+1)]
         
         returns = []
@@ -158,6 +158,26 @@ class Portfolio(object):
             risks.append(stdev)
             
         return returns, risks
+        
+    # this function is to plot efficient frontier with different assets
+    def plotfrontier(self):
+        returns, risks = self.efficientfrontier()
+        a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
+        stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
+        name_ls = np.array([self.assets[i].name for i in range(len(self.assets))])
+        
+        # plot efficient frontier
+        plt.plot(risks, returns, label='Efficient Frontier')
+        
+        # plot underlying assets
+        for i in range (len(stdev_ls)):
+            plt.plot(stdev_ls[i], a_rtn_ls[i], 'o', label=name_ls[i])
+        
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.xlabel('Standard Deviation')
+        plt.ylabel('Expected Return')
+        plt.ylim([0, max(returns)*1.3])
+        plt.show()
         
 
 
