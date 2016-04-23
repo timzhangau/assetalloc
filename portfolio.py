@@ -11,6 +11,7 @@ from assetalloc.asset import Asset
 from cvxopt import matrix
 from cvxopt.solvers import qp, options
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 """
 Methods need to be built for Portfolio object:
@@ -148,38 +149,64 @@ class Portfolio(object):
         
         returns = []
         risks = []
+        weights = []
         
         # call mean-variance optimizer to get optimal weights for each return in the list
         for rtn_target in rtn_ls:
             returns.append(rtn_target)
-            op_w = self.mvopt(rtn_target)
-            var = np.dot(np.dot(op_w.values, self.cov.values), op_w.values)
+            op_w = self.mvopt(rtn_target).values
+            weights.append(op_w)
+            var = np.dot(np.dot(op_w, self.cov.values), op_w)
             stdev = var ** 0.5
             risks.append(stdev)
             
-        return returns, risks
+        return returns, risks, weights
         
-    # this function is to plot efficient frontier with different assets
+
     def plotfrontier(self):
-        returns, risks = self.efficientfrontier()
+        # this function is to plot efficient frontier with different assets
+        returns, risks = self.efficientfrontier()[0:2]
         a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
         stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
         name_ls = np.array([self.assets[i].name for i in range(len(self.assets))])
+        colors_ls = cm.rainbow(np.linspace(0, 1, len(name_ls)))
         
         # plot efficient frontier
         plt.plot(risks, returns, label='Efficient Frontier')
         
         # plot underlying assets
         for i in range (len(stdev_ls)):
-            plt.plot(stdev_ls[i], a_rtn_ls[i], 'o', label=name_ls[i])
+            plt.plot(stdev_ls[i], a_rtn_ls[i], 'o', label=name_ls[i], color=colors_ls[i])
         
-        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
         plt.xlabel('Standard Deviation')
         plt.ylabel('Expected Return')
         plt.ylim([0, max(returns)*1.3])
         plt.show()
         
-
+    def plotoptimalmix(self,x_axis="returns"):
+        # this function is to plot optimal asset mixes on efficient frontier.
+        # x_axis can be returns or risks, but defaulted for returns
+        returns, risks, weights = self.efficientfrontier()
+        returns = np.array(returns)
+        risks = np.array(risks)
+        weights = np.array(weights).T
+        
+        name_ls = np.array([self.assets[i].name for i in range(len(self.assets))])
+        colors_ls = cm.rainbow(np.linspace(0, 1, len(name_ls)))
+        
+        if x_axis == 'returns':
+            x = returns
+            x_label = 'Expected Returns'
+        elif x_axis == 'risks':
+            x = risks
+            x_label = 'Standard Deviation'
+            
+        plt.stackplot(x, weights, colors=colors_ls.tolist())
+        plt.legend(name_ls, loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.xlabel(x_label)
+        plt.ylabel('Asset Weights')
+        plt.show()
 
 
 

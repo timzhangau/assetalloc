@@ -11,6 +11,7 @@ from assetalloc.asset import Asset
 from assetalloc.portfolio import Portfolio
 import matplotlib.pyplot as plt
 %matplotlib inline
+import matplotlib.cm as cm
 
 # upload asset risk, return details and correlation matrix
 
@@ -31,12 +32,28 @@ portfolio1.assets = asset_list
 portfolio1.corr = corr
 portfolio1.cov = cov
 
-returns, risks = portfolio1.efficientfrontier()
+name_ls = np.array([portfolio1.assets[i].name for i in range(len(portfolio1.assets))])
+
+returns, risks = portfolio1.efficientfrontier()[0:2]
 
 # plot efficient frontier
 portfolio1.plotfrontier()
 
+# plot optimal asset mix with returns as x axis
+portfolio1.plotoptimalmix("returns")
 
+# plot optimal asset mix with risk as x axis
+portfolio1.plotoptimalmix("risks")
+
+
+a, b, c = portfolio1.efficientfrontier()
+a = np.array(a)
+b = np.array(b)
+c = np.array(c).T
+
+colors = cm.rainbow(np.linspace(0, 1, len(name_ls)))
+plt.stackplot(a, c, colors=colors.tolist())
+plt.legend(name_ls, loc='center left', bbox_to_anchor=(1, 0.5))
 
 
     
