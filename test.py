@@ -34,7 +34,13 @@ portfolio1.cov = cov
 
 name_ls = np.array([portfolio1.assets[i].name for i in range(len(portfolio1.assets))])
 
-returns, risks = portfolio1.efficientfrontier()[0:2]
+lower_bound=np.array([0.05]*9)
+upper_bound=np.array([0.8]*9)
+
+portfolio1.efficientfrontier()
+
+
+#portfolio1.efficientfrontier(lower_bound=np.array([0.05]*9),upper_bound=np.array([0.8]*9))
 
 # plot efficient frontier
 portfolio1.plotfrontier()
@@ -55,7 +61,7 @@ colors = cm.rainbow(np.linspace(0, 1, len(name_ls)))
 plt.stackplot(a, c, colors=colors.tolist())
 plt.legend(name_ls, loc='center left', bbox_to_anchor=(1, 0.5))
 
-
+portfolio1
     
     
 

@@ -25,6 +25,7 @@ class Portfolio(object):
         self.weights = "please load portfolio weights" # weights is a numpy array
         self.assets = "please specify assets list"
         self.corr = np.array([]) # Correlation is a numpy array
+        self.ef = []  # Used to store calculated efficient frontier [returns, risks, weights]
         
         # all the below attributes can be obtained from Asset list
         #self.a_rtn_ls = np.array([])
@@ -112,7 +113,8 @@ class Portfolio(object):
     
         # Lower bound of the Weights of a equity, If not specified assumed to be 0 (No shorting case)
         if (lower_bound is None):
-            lower_bound = np.zeros(n) 
+            lower_bound = np.zeros(n)
+        lower_bound = lower_bound * (-1)
         lower_bound.shape = (n,1)
                         
         P = matrix(cov)
@@ -134,18 +136,84 @@ class Portfolio(object):
         options['show_progress'] = False
         sol = qp(P, q, G, h, A, b)
         
-        if sol['status'] != 'optimal':
-            warnings.warn("Convergence Problem")
+        #if sol['status'] != 'optimal':
+        #    warnings.warn("Convergence Problem")
         
         op_w = pd.Series(sol['x'], index=name_ls)
         
         return op_w
         
+    def getrtnrange(self, lower_bound, upper_bound):
+        # this function is to calculate theoretical returns range for the portfolio
+        # bounded with lower and upper asset limit
+        rtn_min = 0
+        rtn_max = 0
         
-    def efficientfrontier(self, simu=100):
+        a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
+        
+        # na_signs can be adjusted to expand to short sell, not completed here
+        na_signs = np.ones(len(a_rtn_ls))
+        
+        rtn = na_signs * a_rtn_ls
+        rtn_sort = rtn.argsort()
+        
+        # First add the lower bounds on portfolio participation """ 
+        for i, j in enumerate(rtn):
+            rtn_min = rtn_min + j * lower_bound[i]
+            rtn_max = rtn_max + j * lower_bound[i]
+
+        # Now calculate minimum returns"""
+        # allocate the max possible in worst performing assets """
+        # Subtract min since we have already counted it """
+        upper_add = upper_bound - lower_bound
+        fTotalPercent = np.sum(lower_bound[:])
+        
+        for i, j in enumerate(rtn_sort):
+            rtn_add = upper_add[j] * rtn[j]
+            fTotalPercent = fTotalPercent + upper_add[j]
+            rtn_min = rtn_min + rtn_add
+            
+            # Check if this additional percent puts us over the limit """
+            if fTotalPercent > 1.0:
+                rtn_min = rtn_min - rtn[j] * (fTotalPercent - 1.0)
+                break
+
+        # Repeat for max, just reverse the sort, i.e. high to low """
+        upper_add = upper_bound - lower_bound
+        fTotalPercent = np.sum(lower_bound[:])
+        
+        for i, j in enumerate(rtn_sort[::-1]):
+            rtn_add = upper_add[j] * rtn[j]
+            fTotalPercent = fTotalPercent + upper_add[j]
+            rtn_max = rtn_max + rtn_add
+        
+            # Check if this additional percent puts us over the limit """
+            if fTotalPercent > 1.0:
+                rtn_max = rtn_max - rtn[j] * (fTotalPercent - 1.0)
+                break
+            
+        return (rtn_min, rtn_max)
+
+
+    
+    def efficientfrontier(self, lower_bound=None, upper_bound=None):
         #generate returns list to feed into mvopt
         a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
-        rtn_ls = [(max(a_rtn_ls)-min(a_rtn_ls))/100*i+min(a_rtn_ls) for i in range(simu+1)]
+
+        if (upper_bound is None):
+            upper_bound = np.ones(len(a_rtn_ls))
+    
+        if (lower_bound is None):
+            lower_bound = np.zeros(len(a_rtn_ls))
+            
+        (rtn_min, rtn_max) = self.getrtnrange(lower_bound, upper_bound)
+        
+        # Try to avoid intractible endpoints due to rounding errors """
+        rtn_min += abs(rtn_min) * 0.00000000001 
+        rtn_max -= abs(rtn_max) * 0.00000000001
+        step = (rtn_max - rtn_min)/100
+
+        rtn_ls = [rtn_min + n*step for n in range(101)]
         
         returns = []
         risks = []
@@ -154,18 +222,21 @@ class Portfolio(object):
         # call mean-variance optimizer to get optimal weights for each return in the list
         for rtn_target in rtn_ls:
             returns.append(rtn_target)
-            op_w = self.mvopt(rtn_target).values
+            op_w = self.mvopt(rtn_target, lower_bound=lower_bound, upper_bound=upper_bound).values
             weights.append(op_w)
             var = np.dot(np.dot(op_w, self.cov.values), op_w)
             stdev = var ** 0.5
             risks.append(stdev)
-            
-        return returns, risks, weights
+        
+        self.ef =[returns, risks, weights]
         
 
     def plotfrontier(self):
         # this function is to plot efficient frontier with different assets
-        returns, risks = self.efficientfrontier()[0:2]
+        if (self.ef is None):
+            print "Please calculate efficient frontier"
+        else:            
+            returns, risks = self.ef[0:2]
         a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
         stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
         name_ls = np.array([self.assets[i].name for i in range(len(self.assets))])
@@ -187,7 +258,10 @@ class Portfolio(object):
     def plotoptimalmix(self,x_axis="returns"):
         # this function is to plot optimal asset mixes on efficient frontier.
         # x_axis can be returns or risks, but defaulted for returns
-        returns, risks, weights = self.efficientfrontier()
+        if (self.ef is None):
+            print "Please calculate efficient frontier"
+        else: 
+            returns, risks, weights = self.ef
         returns = np.array(returns)
         risks = np.array(risks)
         weights = np.array(weights).T
