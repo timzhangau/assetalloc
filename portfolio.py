@@ -236,23 +236,23 @@ class Portfolio(object):
         if (self.ef is None):
             print "Please calculate efficient frontier"
         else:            
-            returns, risks = self.ef[0:2]
+            returns, risks = np.array(self.ef[0:2])
         a_rtn_ls = np.array([self.assets[i].a_rtn for i in range(len(self.assets))])
         stdev_ls = np.array([self.assets[i].stdev for i in range(len(self.assets))])
         name_ls = np.array([self.assets[i].name for i in range(len(self.assets))])
         colors_ls = cm.rainbow(np.linspace(0, 1, len(name_ls)))
         
         # plot efficient frontier
-        plt.plot(risks, returns, label='Efficient Frontier')
+        plt.plot(risks*100, returns*100, label='Efficient Frontier')
         
         # plot underlying assets
         for i in range (len(stdev_ls)):
-            plt.plot(stdev_ls[i], a_rtn_ls[i], 'o', label=name_ls[i], color=colors_ls[i])
+            plt.plot(stdev_ls[i]*100, a_rtn_ls[i]*100, 'o', label=name_ls[i], color=colors_ls[i])
         
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), numpoints=1)
-        plt.xlabel('Standard Deviation')
-        plt.ylabel('Expected Return')
-        plt.ylim([0, max(returns)*1.3])
+        plt.xlabel('Standard Deviation (%)')
+        plt.ylabel('Expected Return (%)')
+        plt.ylim([0, max(returns)*1.3*100])
         plt.show()
         
     def plotoptimalmix(self,x_axis="returns"):
@@ -271,15 +271,15 @@ class Portfolio(object):
         
         if x_axis == 'returns':
             x = returns
-            x_label = 'Expected Returns'
+            x_label = 'Expected Returns (%)'
         elif x_axis == 'risks':
             x = risks
-            x_label = 'Standard Deviation'
+            x_label = 'Standard Deviation (%)'
             
-        plt.stackplot(x, weights, colors=colors_ls.tolist())
+        plt.stackplot(x*100, weights*100, colors=colors_ls.tolist())
         plt.legend(name_ls, loc='center left', bbox_to_anchor=(1, 0.5))
         plt.xlabel(x_label)
-        plt.ylabel('Asset Weights')
+        plt.ylabel('Asset Weights (%)')
         plt.show()
 
 
