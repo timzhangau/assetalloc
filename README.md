@@ -1,5 +1,7 @@
 # assetalloc
-Asset Allocation Tool including Optimization and Forecasting
+Asset Allocation Tool including 
+- Asset class risk and return forecasting, including currency
+- Portfolio optimization and simulation
 
 The MIT License (MIT)
 
