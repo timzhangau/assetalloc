@@ -1,6 +1,6 @@
 # assetalloc
 Asset Allocation Tool including 
-- Asset class risk and return assumption calculation, including currency
+- Asset class risk and return assumptions calculation, including currency
 - Portfolio optimization and simulation
 
 The MIT License (MIT)
