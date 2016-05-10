@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 
-
+# create asset class object, this is to feed into portfolio class for portfolio construction
 
 class Asset(object):
     def __init__(self, name):
@@ -41,6 +41,36 @@ class Asset(object):
     def artogr(self):
         self.g_rtn = (1 + self.a_rtn) * exp(-0.5 * (self.stdev**2) * ((1+self.a_rtn)**-2)) -1
 
+class Equity(Asset):
+    def __init__(self, name):
+        Asset.__init__(self, name)
+        self.cls = "Equity"
+        self.div_yld = "please upload div yield data"
+        self.div_po = "please upload div payout data"
+        self.div_growth = "please upload div growth data"
+        self.pe = "please upload pe data"
+        self.cape10 = "please upload 10Y cape data"
+        self.cape5 = "please upload 5Y cape data"
+        self.eps_growth = "please upload eps growth data"
+        self.price = "please upload price data"
+        self.pb = "please upload price to book data"
+        self.roe = "please upload roe data"
+        self.bps_growth = "please upload bps growth data"
+        self.pcf = "please upload price to cashflow data"
+        self.cfps_growth = "please upload cfps growth data"
+        self.ps = "please upload price to sales data"
+        self.margin = "please upload margin data"
+        self.sps_growth = "please upload sps growth data"
+        self.tot_yld = "please upload total yield data"
+        self.caty10 = "please upload 10Y caty data"
+        self.caty5 = "please upload 5Y caty data"
+        self.tot_po = "please upload total yield payout data"
+        self.tot_growth = "please upload total payout growth data"
+        self.net_iss = "please upload net issuance data"
+        self.mkt_cap = "please upload total mkt cap data"
+        self.reprch_yld = "please upload repurchase yield data"
+        self.iss_yld = "please upload issuance yield data"
+        
             
         
         
