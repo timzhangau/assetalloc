@@ -53,6 +53,7 @@ class Equity(Asset):
         self.cape5 = "please upload 5Y cape data"
         self.eps_growth = "please upload eps growth data"
         self.price = "please upload price data"
+        self.tot_ret = "please upload total return price data"
         self.pb = "please upload price to book data"
         self.roe = "please upload roe data"
         self.bps_growth = "please upload bps growth data"
@@ -70,6 +71,9 @@ class Equity(Asset):
         self.mkt_cap = "please upload total mkt cap data"
         self.reprch_yld = "please upload repurchase yield data"
         self.iss_yld = "please upload issuance yield data"
+        self.sec_w = "please upload sector weight"
+        self.region = "please specify region"
+        
         
             
         
