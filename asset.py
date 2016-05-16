@@ -87,12 +87,26 @@ class Equity(Asset):
         data = pd.read_csv("ausequity.csv", index_col=[0], parse_dates=True, dayfirst=True)
         for i in range(len(mapping.index)):
             attribute = mapping.index[i]
-            setattr(b, attribute, data[mapping.iloc[i,0]])
-            
+            setattr(self, attribute, data[mapping.iloc[i,0]])
 
+        self.earnings_norm = self.price/self.pe
+        
+        # assume total yield equals to div yield at this stage, need to update this once data available
+        self.tot_yld = self.div_yld
+        
 
-
-
+    def assumptions(self):
+        #this is to calculate assumptions used in the model, fair growth rate, payout ratio and etc
+        #currently the fair assumptions are hard coded, need to complete this function once data available
+        self.trend_fair = 0.0163
+        self.pe_fair = 14.74
+        self.margin_fair = 0.0696
+        self.roe_fair = 0.109
+        self.tpo_fair = 0.7242
+    
+    
+    def fairreturns(self):
+        self.income
 
 
 
