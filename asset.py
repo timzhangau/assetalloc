@@ -15,8 +15,8 @@ import pandas as pd
 # create asset class object, this is to feed into portfolio class for portfolio construction
 
 class Asset(object):
-    def __init__(self, name):
-        self.name = name #asset name
+    def __init__(self):
+        self.name = "please specify asset class name" #asset name
         self.a_rtn = "please upload asset AR"
         self.g_rtn = "please upload asset GR"      
         # Asset return can be modelled using different methods:
@@ -41,9 +41,13 @@ class Asset(object):
     def artogr(self):
         self.g_rtn = (1 + self.a_rtn) * exp(-0.5 * (self.stdev**2) * ((1+self.a_rtn)**-2)) -1
 
+
+
+
+
 class Equity(Asset):
-    def __init__(self, name):
-        Asset.__init__(self, name)
+    def __init__(self):
+        Asset.__init__(self)
         self.cls = "Equity"
         self.div_yld = "please upload div yield data"
         self.div_po = "please upload div payout data"
@@ -73,10 +77,35 @@ class Equity(Asset):
         self.iss_yld = "please upload issuance yield data"
         self.sec_w = "please upload sector weight"
         self.region = "please specify region"
+        self.inflation = "please upload inflation data"
         
         
+        
+        
+    def importdata(self):
+        mapping = pd.read_csv("mapping.csv", index_col=[0])
+        data = pd.read_csv("ausequity.csv", index_col=[0], parse_dates=True, dayfirst=True)
+        for i in range(len(mapping.index)):
+            attribute = mapping.index[i]
+            setattr(b, attribute, data[mapping.iloc[i,0]])
             
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         
         
