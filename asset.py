@@ -90,9 +90,10 @@ class Equity(Asset):
             setattr(self, attribute, data[mapping.iloc[i,0]])
 
         self.earnings_norm = self.price/self.pe
-        
+        self.div_po = self.div_yld * self.pe
         # assume total yield equals to div yield at this stage, need to update this once data available
         self.tot_yld = self.div_yld
+        self.tot_po = self.div_po
         
 
     def assumptions(self):
@@ -103,10 +104,31 @@ class Equity(Asset):
         self.margin_fair = 0.0696
         self.roe_fair = 0.109
         self.tpo_fair = 0.7242
+        self.dpo_fair = 0.5827
+        self.earnings_fair = 72.30
     
     
-    def fairreturns(self):
-        self.income
+    def fairreturns(self, date, n=10):
+        date = self.pe.index[-1]  #default to the latest month end, can change this for backtesting purpose
+        # current fundamental data        
+        price_0 = self.price[date]
+        pe_0 = self.pe[date]
+        earnings_0 = price_0 / self.pe[date]
+        sales_0 = price_0 /self.ps[date]
+        margin_0 = earnings_0 / sales_0
+        book_0 = price_0 / self.pb[date]
+        roe_0 = earnings_0 / book_0
+        div_yld_0 = self.div_yld[date]
+        
+        # calculate reversion building blocks
+        earnings_rev = (self.earnings_fair * ((1 + self.trend_fair)**4.5)) / earnings_0 - 1 #4.5 if CAPE10 is used, otherwise 2.25 for CAPE5, need to look into a bit more for this
+        margin_rev = self.margin_fair / margin_0 - 1
+        roe_rev = self.roe_fair / roe_0 - 1
+        pe_rev = self.pe_fair / pe_0 - 1
+        
+        # create numpy arrays to different reversion series
+        earnings_rev_
+
 
 
 
