@@ -127,7 +127,29 @@ class Equity(Asset):
         pe_rev = self.pe_fair / pe_0 - 1
         
         # create numpy arrays to different reversion series
-        earnings_rev_
+        earnings_rev_path = np.zeros(20)
+        margin_rev_path = np.zeros(20)
+        roe_rev_path = np.zeros(20)
+        pe_rev_path = np.zeros(20)
+        for i in range(n):
+            earnings_rev_path[i] = (1 + earnings_rev)**(1/float(n)) -1
+            margin_rev_path[i] = (1 + margin_rev)**(1/float(n)) - 1
+            roe_rev_path[i] = (1 + roe_rev)**(1/float(n)) - 1
+            pe_rev_path[i] = (1 + pe_rev)**(1/float(n)) -1
+        avg_rev_path = np.mean(np.array([earnings_rev_path, margin_rev_path, roe_rev_path]), axis=0) #need to build on this to include model weighting
+        
+        earnings_path = np.zeros(20)
+        earnings_path[0] = earnings_0 * (1+self.trend_fair) * (1+avg_rev_path[0])
+        pe_path = np.zeros(20)
+        pe_path[0] = pe_0 * (1+pe_rev_path[0]) * (1+avg_rev_path[0]) * (1+self.trend_fair)
+        for i in xrange(1, 20, 1):
+            earnings_path[i] = earnings_path[i-1] * (1+avg_rev_path[i]) * (1+self.trend_fair)
+            pe_path[i] = pe_path[i-1] * (1+pe_rev_path[i]) * (1+avg_rev_path[i]) * (1+self.trend_fair)
+            
+            
+        
+        
+        
 
 
 
