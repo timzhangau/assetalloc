@@ -119,18 +119,24 @@ class Equity(Asset):
         book_0 = price_0 / self.pb[date]
         roe_0 = earnings_0 / book_0
         div_yld_0 = self.div_yld[date]
+        tpo_0 = self.tot_po[date]
         
         # calculate reversion building blocks
         earnings_rev = (self.earnings_fair * ((1 + self.trend_fair)**4.5)) / earnings_0 - 1 #4.5 if CAPE10 is used, otherwise 2.25 for CAPE5, need to look into a bit more for this
         margin_rev = self.margin_fair / margin_0 - 1
         roe_rev = self.roe_fair / roe_0 - 1
         pe_rev = self.pe_fair / pe_0 - 1
+        tpo_rev = self.tpo_fair / tpo_0 - 1
         
         # create numpy arrays to different reversion series
         earnings_rev_path = np.zeros(20)
         margin_rev_path = np.zeros(20)
         roe_rev_path = np.zeros(20)
         pe_rev_path = np.zeros(20)
+        tpo_rev_path = np.zeros(20)
+        earnings_growth_path = np.empty(20)
+        earnings_growth_path.fill(self.trend_fair)
+        
         for i in range(n):
             earnings_rev_path[i] = (1 + earnings_rev)**(1/float(n)) -1
             margin_rev_path[i] = (1 + margin_rev)**(1/float(n)) - 1
@@ -139,14 +145,16 @@ class Equity(Asset):
         avg_rev_path = np.mean(np.array([earnings_rev_path, margin_rev_path, roe_rev_path]), axis=0) #need to build on this to include model weighting
         
         earnings_path = np.zeros(20)
-        earnings_path[0] = earnings_0 * (1+self.trend_fair) * (1+avg_rev_path[0])
+        earnings_path[0] = earnings_0 * (1+earnings_growth_path[0]) * (1+avg_rev_path[0])
         pe_path = np.zeros(20)
-        pe_path[0] = pe_0 * (1+pe_rev_path[0]) * (1+avg_rev_path[0]) * (1+self.trend_fair)
+        pe_path[0] = pe_0 * (1+pe_rev_path[0]) * (1+avg_rev_path[0]) * (1+earnings_growth_path[0])
         for i in xrange(1, 20, 1):
-            earnings_path[i] = earnings_path[i-1] * (1+avg_rev_path[i]) * (1+self.trend_fair)
-            pe_path[i] = pe_path[i-1] * (1+pe_rev_path[i]) * (1+avg_rev_path[i]) * (1+self.trend_fair)
+            earnings_path[i] = earnings_path[i-1] * (1+avg_rev_path[i]) * (1+earnings_growth_path[i])
+            pe_path[i] = pe_path[i-1] * (1+pe_rev_path[i]) * (1+avg_rev_path[i]) * (1+earnings_growth_path[i])
             
             
+        for i in [10, 20]:
+            ret_totyld_10 = 
         
         
         
