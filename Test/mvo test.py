@@ -7,8 +7,8 @@ This is a temporary script file.
 
 import pandas as pd
 import numpy as np
-from assetalloc.asset import Asset
-from assetalloc.portfolio import Portfolio
+from asset import Asset
+from portfolio import Portfolio
 import matplotlib.pyplot as plt
 %matplotlib inline
 import matplotlib.cm as cm
